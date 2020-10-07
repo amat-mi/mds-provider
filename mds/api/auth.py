@@ -3,6 +3,7 @@ Authentication module for MDS API calls.
 """
 
 import requests
+from requests.auth import HTTPBasicAuth
 
 
 class AuthorizationToken():
@@ -145,6 +146,40 @@ class SpinClientCredentials(AuthorizationToken):
         return all([
             provider.provider_name.lower() == "spin",
             hasattr(provider, "email"),
+            hasattr(provider, "password"),
+            hasattr(provider, "token_url")
+        ])
+
+
+class BasicAuthCredentials(AuthorizationToken):
+    """
+    Currently, your config needs:
+
+    * username
+    * password
+    * token_url
+    """
+    def __init__(self, provider):
+        """
+        Acquires the bearer token before establishing a session.
+        """
+        payload = {
+            "grant_type": "client_credentials"
+        }
+        r = requests.post(provider.token_url, data=payload, 
+                          auth=HTTPBasicAuth(provider.username, provider.password)
+                          )
+        provider.token = r.json()["access_token"]
+
+        AuthorizationToken.__init__(self, provider)
+
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            hasattr(provider, "username"),
             hasattr(provider, "password"),
             hasattr(provider, "token_url")
         ])
