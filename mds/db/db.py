@@ -290,6 +290,11 @@ class Database():
 
             df = self._add_missing_cols(df, null_cols)
 
+            if df['start_time'].any() < 9999999999:
+                df['start_time'] = 1000 * df['start_time']      #normalize to milliseconds
+            if df['end_time'].any() < 9999999999:
+                df['end_time'] = 1000 * df['end_time']      #normalize to milliseconds
+            
             return before_load(df, version)
 
         return self.load(source, TRIPS, table, before_load=_before_load, **kwargs)
