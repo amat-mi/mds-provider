@@ -151,6 +151,42 @@ class SpinClientCredentials(AuthorizationToken):
         ])
 
 
+class HelbizClientCredentials(AuthorizationToken):
+    """
+    Represents an authenticated session via the Helbiz authentication scheme.
+
+    Currently, your config needs:
+
+    * user_id
+    * secret
+    * token_url
+    """
+    def __init__(self, provider):
+        """
+        Acquires the provider token for Bolt before establishing a session.
+        """
+        payload = {
+            "user_id": provider.user_id,
+            "secret": provider.secret
+        }
+        r = requests.post(provider.token_url, json=payload)
+        provider.token = r.json()["token"]
+
+        AuthorizationToken.__init__(self, provider)
+
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            provider.provider_name.lower() == "helbiz",
+            hasattr(provider, "user_id"),
+            hasattr(provider, "secret"),
+            hasattr(provider, "token_url")
+        ])
+
+
 class BasicAuthCredentials(AuthorizationToken):
     """
     Currently, your config needs:
