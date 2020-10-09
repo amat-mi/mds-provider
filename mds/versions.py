@@ -57,6 +57,10 @@ class Version():
         if not isinstance(version, str):
             raise TypeError("version")
 
+        #support versions such as: "application/vnd.mds.provider+json;version=0.3"
+        if version.startswith('application/vnd.mds.provider+json;version='):
+            version = version.split('=')[1]
+            
         self._version = self._parse(version)
         self._legacy = None
 
