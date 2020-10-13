@@ -26,6 +26,10 @@ class AuthorizationToken():
         Establishes a session for the provider and includes the Authorization token header.
         """
         session = requests.Session()
+        verify = getattr(provider,'ssl_verify',None)
+        if verify is not None:
+          session.verify = verify 
+        
         #if Provider auth_type has is empty, do NOT include it (avoid initial blank)
         if provider.auth_type:
            session.headers.update({ "Authorization": f"{provider.auth_type} {provider.token}" })
@@ -64,7 +68,9 @@ class OAuthClientCredentials(AuthorizationToken):
             "grant_type": "client_credentials",
             "scope": provider.scope.split(",")
         }
-        r = requests.post(provider.token_url, data=payload)
+        r = requests.post(provider.token_url, data=payload,
+                          verify=getattr(provider,'ssl_verify',None)
+                          )
         provider.token = r.json()["access_token"]
         
         AuthorizationToken.__init__(self, provider)
@@ -99,7 +105,9 @@ class BoltClientCredentials(AuthorizationToken):
             "email": provider.email,
             "password": provider.password
         }
-        r = requests.post(provider.token_url, params=payload)
+        r = requests.post(provider.token_url, params=payload,
+                          verify=getattr(provider,'ssl_verify',None)
+                          )
         provider.token = r.json()["token"]
 
         AuthorizationToken.__init__(self, provider)
@@ -137,7 +145,9 @@ class SpinClientCredentials(AuthorizationToken):
             "password": provider.password,
             "grant_type": "api"
         }
-        r = requests.post(provider.token_url, params=payload)
+        r = requests.post(provider.token_url, params=payload,
+                          verify=getattr(provider,'ssl_verify',None)
+                          )
         provider.token = r.json()["jwt"]
 
         AuthorizationToken.__init__(self, provider)
@@ -173,7 +183,9 @@ class HelbizClientCredentials(AuthorizationToken):
             "user_id": provider.user_id,
             "secret": provider.secret
         }
-        r = requests.post(provider.token_url, json=payload)
+        r = requests.post(provider.token_url, json=payload,
+                          verify=getattr(provider,'ssl_verify',None)
+                          )
         provider.token = r.json()["token"]
 
         AuthorizationToken.__init__(self, provider)
@@ -209,7 +221,9 @@ class BitClientCredentials(AuthorizationToken):
             "email": provider.email,
             "password": provider.password
         }
-        r = requests.post(provider.token_url, json=payload)
+        r = requests.post(provider.token_url, json=payload,
+                          verify=getattr(provider,'ssl_verify',None)
+                          )
         provider.token = r.json()["token"]
         provider.auth_type = ''       #there must be NO 'Bearer' or other prefix!!!
 
@@ -244,7 +258,8 @@ class BasicAuthCredentials(AuthorizationToken):
             "grant_type": "client_credentials"
         }
         r = requests.post(provider.token_url, data=payload, 
-                          auth=HTTPBasicAuth(provider.username, provider.password)
+                          auth=HTTPBasicAuth(provider.username, provider.password),
+                          verify=getattr(provider,'ssl_verify',None)
                           )
         provider.token = r.json()["access_token"]
 
