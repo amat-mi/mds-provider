@@ -26,7 +26,11 @@ class AuthorizationToken():
         Establishes a session for the provider and includes the Authorization token header.
         """
         session = requests.Session()
-        session.headers.update({ "Authorization": f"{provider.auth_type} {provider.token}" })
+        #if Provider auth_type has is empty, do NOT include it (avoid initial blank)
+        if provider.auth_type:
+           session.headers.update({ "Authorization": f"{provider.auth_type} {provider.token}" })
+        else:
+           session.headers.update({ "Authorization": f"{provider.token}" })
 
         headers = getattr(provider, "headers", None)
         if headers:
@@ -62,7 +66,7 @@ class OAuthClientCredentials(AuthorizationToken):
         }
         r = requests.post(provider.token_url, data=payload)
         provider.token = r.json()["access_token"]
-
+        
         AuthorizationToken.__init__(self, provider)
 
     @classmethod
@@ -163,7 +167,7 @@ class HelbizClientCredentials(AuthorizationToken):
     """
     def __init__(self, provider):
         """
-        Acquires the provider token for Bolt before establishing a session.
+        Acquires the provider token for Helbiz before establishing a session.
         """
         payload = {
             "user_id": provider.user_id,
@@ -183,6 +187,43 @@ class HelbizClientCredentials(AuthorizationToken):
             provider.provider_name.lower() == "helbiz",
             hasattr(provider, "user_id"),
             hasattr(provider, "secret"),
+            hasattr(provider, "token_url")
+        ])
+
+
+class BitClientCredentials(AuthorizationToken):
+    """
+    Represents an authenticated session via the Bit authentication scheme.
+
+    Currently, your config needs:
+
+    * user_id
+    * secret
+    * token_url
+    """
+    def __init__(self, provider):
+        """
+        Acquires the provider token for Bit before establishing a session.
+        """
+        payload = {
+            "email": provider.email,
+            "password": provider.password
+        }
+        r = requests.post(provider.token_url, json=payload)
+        provider.token = r.json()["token"]
+        provider.auth_type = ''       #there must be NO 'Bearer' or other prefix!!!
+
+        AuthorizationToken.__init__(self, provider)
+
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            provider.provider_name.lower() == "bit",
+            hasattr(provider, "email"),
+            hasattr(provider, "password"),
             hasattr(provider, "token_url")
         ])
 
