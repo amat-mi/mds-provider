@@ -2,6 +2,9 @@
 Authentication module for MDS API calls.
 """
 
+from datetime import datetime, timedelta
+
+import jwt
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -85,6 +88,35 @@ class OAuthClientCredentials(AuthorizationToken):
             hasattr(provider, "client_secret"),
             hasattr(provider, "scope")
         ])
+
+
+class JWTCredentials(AuthorizationToken):
+    """
+    Represents an authenticated session via generation of a JWT token.
+    """
+    def __init__(self, provider):
+        """
+        Acquires a Bearer token before establishing a session with the provider.
+        """
+        headers = {
+          'alg': 'RS256',
+          'typ': 'JWT',
+          'kid' : provider.private_key_id 
+        }
+        now = datetime.utcnow()
+        payload = {
+            'email': provider.client_email,
+            'iat': now,
+            'exp': now + timedelta(hours=1),
+            'aud': self.aud,
+            'iss': provider.client_email,
+            'sub': provider.client_email,
+        }
+        provider.token = jwt.encode(key=provider.private_key,          
+            payload=payload, algorithm='RS256', headers=headers
+        ).decode('utf-8')
+        
+        AuthorizationToken.__init__(self, provider)
 
 
 class BoltClientCredentials(AuthorizationToken):
@@ -239,6 +271,40 @@ class BitClientCredentials(AuthorizationToken):
             hasattr(provider, "email"),
             hasattr(provider, "password"),
             hasattr(provider, "token_url")
+        ])
+
+# #NOOO!!! Per ora solo GBFS, perché non c'è modo di distinguere le due classi!!!
+# class DottMDSJWTCredentials(JWTCredentials):
+#   
+#     aud = "https://mds.api.ridedott.com"
+#     
+#     @classmethod
+#     def can_auth(cls, provider):
+#         """
+#         Returns True if this auth type can be used for the provider.
+#         """
+#         return all([
+#             provider.provider_name.lower() == "dott",
+#             hasattr(provider, "private_key_id"),            
+#             hasattr(provider, "client_email"),
+#             hasattr(provider, "private_key"),            
+#         ])
+
+
+class DottGBFSJWTCredentials(JWTCredentials):
+  
+    aud = "https://gbfs.api.ridedott.com"
+    
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            provider.provider_name.lower() == "dott",
+            hasattr(provider, "private_key_id"),            
+            hasattr(provider, "client_email"),
+            hasattr(provider, "private_key"),            
         ])
 
 
