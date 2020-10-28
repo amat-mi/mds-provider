@@ -90,7 +90,7 @@ class OAuthClientCredentials(AuthorizationToken):
         ])
 
 
-class JWTCredentials(AuthorizationToken):
+class BaseJWTCredentials(AuthorizationToken):
     """
     Represents an authenticated session via generation of a JWT token.
     """
@@ -118,6 +118,12 @@ class JWTCredentials(AuthorizationToken):
         
         AuthorizationToken.__init__(self, provider)
 
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        ALways returns False, since this is only a base class.
+        """
+        return False
 
 class BoltClientCredentials(AuthorizationToken):
     """
@@ -274,7 +280,7 @@ class BitClientCredentials(AuthorizationToken):
         ])
 
 # #NOOO!!! Per ora solo GBFS, perché non c'è modo di distinguere le due classi!!!
-# class DottMDSJWTCredentials(JWTCredentials):
+# class DottMDSJWTCredentials(BaseJWTCredentials):
 #   
 #     aud = "https://mds.api.ridedott.com"
 #     
@@ -291,7 +297,7 @@ class BitClientCredentials(AuthorizationToken):
 #         ])
 
 
-class DottGBFSJWTCredentials(JWTCredentials):
+class DottGBFSJWTCredentials(BaseJWTCredentials):
   
     aud = "https://gbfs.api.ridedott.com"
     
