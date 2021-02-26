@@ -9,7 +9,32 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 
-class AuthorizationToken():
+class BaseAuthorization():
+    """
+    Represents a session that do not require any Authentication method.
+    """
+    def __init__(self, provider):
+        """
+        Establishes a session for the provider.
+        """
+        session = requests.Session()
+        verify = getattr(provider,'ssl_verify',None)
+        if verify is not None:
+          session.verify = verify 
+
+        self.session = session
+
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            hasattr(provider, "no_auth_required")
+        ])
+
+
+class AuthorizationToken(BaseAuthorization):
     """
     Represents an authenticated session via an Authorization token header.
 
@@ -26,24 +51,19 @@ class AuthorizationToken():
     """
     def __init__(self, provider):
         """
-        Establishes a session for the provider and includes the Authorization token header.
+        Includes the Authorization token header in the session for the provider
         """
-        session = requests.Session()
-        verify = getattr(provider,'ssl_verify',None)
-        if verify is not None:
-          session.verify = verify 
+        BaseAuthorization.__init__(self, provider)
         
         #if Provider auth_type has is empty, do NOT include it (avoid initial blank)
         if provider.auth_type:
-           session.headers.update({ "Authorization": f"{provider.auth_type} {provider.token}" })
+            self.session.headers.update({ "Authorization": f"{provider.auth_type} {provider.token}" })
         else:
-           session.headers.update({ "Authorization": f"{provider.token}" })
+            self.session.headers.update({ "Authorization": f"{provider.token}" })
 
         headers = getattr(provider, "headers", None)
         if headers:
-            session.headers.update(headers)
-
-        self.session = session
+            self.session.headers.update(headers)
 
     @classmethod
     def can_auth(cls, provider):
@@ -358,4 +378,4 @@ def auth_types():
             [s for c in cls.__subclasses__() for s in all_subs(c)]
         ).union([cls])
 
-    return all_subs(AuthorizationToken)
+    return all_subs(BaseAuthorization)
