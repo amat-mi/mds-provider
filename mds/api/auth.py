@@ -1,3 +1,5 @@
+# coding: utf-8
+
 """
 Authentication module for MDS API calls.
 """
@@ -134,7 +136,7 @@ class BaseJWTCredentials(AuthorizationToken):
         }
         provider.token = jwt.encode(key=provider.private_key,          
             payload=payload, algorithm='RS256', headers=headers
-        ).decode('utf-8')
+        )
         
         AuthorizationToken.__init__(self, provider)
 
@@ -299,7 +301,7 @@ class BitClientCredentials(AuthorizationToken):
             hasattr(provider, "token_url")
         ])
 
-# #NOOO!!! Per ora solo GBFS, perché non c'è modo di distinguere le due classi!!!
+# #NOOO!!! Per ora solo GBFS, perchÃ© non c'Ã¨ modo di distinguere le due classi!!!
 # class DottMDSJWTCredentials(BaseJWTCredentials):
 #   
 #     aud = "https://mds.api.ridedott.com"

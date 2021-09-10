@@ -1,3 +1,5 @@
+# coding: utf-8
+
 """
 Work with Providers from the registry.
 """
@@ -185,7 +187,7 @@ class Registry():
         else:
             url = mds.github.registry_url(ref)
             with requests.get(url, stream=True) as r:
-                lines = (line.decode("utf-8").replace(", ", ",") for line in r.iter_lines())
+                lines = (line.replace(", ", ",") for line in r.iter_lines())
                 return Registry._parse_csv(lines, ref=ref, path=path)
 
     @staticmethod
