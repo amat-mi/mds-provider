@@ -55,9 +55,18 @@ class Client():
 
     def _media_type_version_header(self, version):
         """
-        The custom MDS media-type and version header, using this client's version
+        The custom MDS media-type and version header, using this client's version.
+        Must use a different header (as per different specs of different MDS versions:
+          before version 1.0
+            https://github.com/openmobilityfoundation/mobility-data-specification/blob/0.3.x/provider/README.md
+              => application/vnd.mds.provider+json
+          starting from version 1.0
+            https://github.com/openmobilityfoundation/mobility-data-specification/blob/release-1.0.0/general-information.md#versioning
+              => application/vnd.mds+json;version            
         """
-        return "Accept", f"application/vnd.mds.provider+json;version={version.header}"
+        if version.tuple[0] < 1:
+            return "Accept", f"application/vnd.mds.provider+json;version={version.header}"
+        return "Accept", f"application/vnd.mds+json;version={version.header}"
 
     def _provider_or_raise(self, provider, **kwargs):
         """
