@@ -79,6 +79,52 @@ class AuthorizationToken(BaseAuthorization):
         ])
 
 
+class LoginClientCredentials(AuthorizationToken):
+    """
+    Represents an authenticated session via a simple username/password POST.
+
+    Currently, your config needs:
+
+    * username
+    * password
+    * login_url
+    
+    Optionally it may provide:
+    
+    * username_key (key to use in request for username, defaults to "username")
+    * password_key (key to use in request for password, defaults to "password")
+    * token_key (key of token value in response, default to "token")
+    """
+    def __init__(self, provider):
+        """
+        Acquires the provider token before establishing a session.
+        Use provider specified names for request values or defaults.
+        """
+        payload = {
+            getattr(provider, "username_key", "username"): provider.username,
+            getattr(provider, "password_key", "password"): provider.password
+        }
+
+        r = requests.post(provider.login_url, json=payload,
+                          verify=getattr(provider,'ssl_verify',None),
+                          headers=getattr(provider, "login_headers",None)
+                          )
+        provider.token = r.json()[getattr(provider, "token_key", "token")]
+
+        AuthorizationToken.__init__(self, provider)
+
+    @classmethod
+    def can_auth(cls, provider):
+        """
+        Returns True if this auth type can be used for the provider.
+        """
+        return all([
+            hasattr(provider, "username"),
+            hasattr(provider, "password"),
+            hasattr(provider, "login_url")
+        ])
+
+
 class OAuthClientCredentials(AuthorizationToken):
     """
     Represents an authenticated session via OAuth 2.0 client_credentials grant flow.
