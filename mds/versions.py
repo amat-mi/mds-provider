@@ -9,7 +9,7 @@ import packaging.version
 
 __version__ = "0.6.0"
 __mds_lower_version__ = "0.3.0"       #The smallest MDS Version supported by the library version.
-__mds_upper_version__ = "1.2.1"       #The smallest MDS Version NOT supported by the library version.
+__mds_upper_version__ = "1.3.0"       #The smallest MDS Version NOT supported by the library version.
 
 
 class UnexpectedVersionError(ValueError):
