@@ -9,7 +9,7 @@ import packaging.version
 
 __version__ = "0.6.0"
 __mds_lower_version__ = "0.3.0"
-__mds_upper_version__ = "1.1.0"
+__mds_upper_version__ = "1.2.0"
 
 
 class UnexpectedVersionError(ValueError):
