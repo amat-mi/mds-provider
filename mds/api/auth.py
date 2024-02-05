@@ -347,39 +347,37 @@ class BitClientCredentials(AuthorizationToken):
             hasattr(provider, "token_url")
         ])
 
-# #NOOO!!! Per ora solo GBFS, perché non c'è modo di distinguere le due classi!!!
-# class DottMDSJWTCredentials(BaseJWTCredentials):
-#   
-#     aud = "https://mds.api.ridedott.com"
-#     
-#     @classmethod
-#     def can_auth(cls, provider):
-#         """
-#         Returns True if this auth type can be used for the provider.
-#         """
-#         return all([
-#             provider.provider_name.lower() == "dott",
-#             hasattr(provider, "private_key_id"),            
-#             hasattr(provider, "client_email"),
-#             hasattr(provider, "private_key"),            
-#         ])
 
+class BaseDottJWTCredentials(BaseJWTCredentials):
 
-class DottGBFSJWTCredentials(BaseJWTCredentials):
-  
-    aud = "https://gbfs.api.ridedott.com"
-    
+    base_protocol = 'unknown'
+       
     @classmethod
     def can_auth(cls, provider):
         """
         Returns True if this auth type can be used for the provider.
+        Requires the presence of the "base_protocol" attributes that must match
+        the one of each derived class
         """
         return all([
             provider.provider_name.lower() == "dott",
             hasattr(provider, "private_key_id"),            
             hasattr(provider, "client_email"),
             hasattr(provider, "private_key"),            
+            getattr(provider, "base_protocol", None) == cls.base_protocol,            
         ])
+
+
+class DottGBFSJWTCredentials(BaseDottJWTCredentials):
+  
+    base_protocol = 'gbfs'
+    aud = "https://gbfs.api.ridedott.com"
+
+
+class DottMDSJWTCredentials(BaseDottJWTCredentials):
+  
+    base_protocol = 'mds'
+    aud = "https://mds.api.ridedott.com"
 
 
 class BasicAuthCredentials(AuthorizationToken):
