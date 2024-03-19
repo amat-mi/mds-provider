@@ -18,6 +18,11 @@ EVENTS = "events"
 VEHICLES = "vehicles"
 SCHEMA_TYPES = [ STATUS_CHANGES, TRIPS, EVENTS, VEHICLES ]
 
+# also add schema types for a few Agency APIs
+POLICIES = "policies"
+GEOGRAPHIES = "geographies"
+SCHEMA_TYPES += [ POLICIES, GEOGRAPHIES ]
+
 
 class Schema():
     """

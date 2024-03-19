@@ -9,6 +9,8 @@ from ..encoding import TimestampEncoder, TimestampDecoder
 from ..files import ConfigFile
 from ..providers import Provider
 from ..schemas import STATUS_CHANGES, TRIPS, EVENTS, VEHICLES, Schema
+# also support a few Agency APIs
+from ..schemas import POLICIES, GEOGRAPHIES
 from ..versions import Version
 from .auth import auth_types
 
@@ -372,6 +374,82 @@ class Client():
 
         return self.get(VEHICLES, provider, **kwargs)
 
+    def get_policies(self, provider=None, **kwargs):
+        """
+        Request policies, returning a list of non-empty payloads.
+
+        Parameters:
+            provider: str, UUID, Provider, optional
+                Provider instance or identifier to issue this request to.
+                By default issue the request to this client's Provider instance.
+
+            config: dict, ConfigFile, optional
+                Attributes to merge with the Provider instance.
+
+            paging: bool, optional
+                True (default) to follow paging and request all available data.
+                False to request only the first page.
+
+            rate_limit: int, optional
+                Number of seconds of delay to insert between paging requests.
+
+            version: str, Version, optional
+                The MDS version to target.
+
+            Additional keyword arguments are passed through as API request parameters.
+
+        Return:
+            list
+                The non-empty payloads (e.g. payloads with data records), one for each requested page.
+        """
+        version = Version(kwargs.get("version", self.version))
+        version.raise_if_unsupported()
+
+        if version < Version._041_():
+            raise ValueError(f"MDS Version {version} does not support the {POLICIES} endpoint.")
+
+        Client._params_check(POLICIES, version, **kwargs)
+
+        return self.get(POLICIES, provider, **kwargs)
+
+    def get_geographies(self, provider=None, **kwargs):
+        """
+        Request geographies, returning a list of non-empty payloads.
+
+        Parameters:
+            provider: str, UUID, Provider, optional
+                Provider instance or identifier to issue this request to.
+                By default issue the request to this client's Provider instance.
+
+            config: dict, ConfigFile, optional
+                Attributes to merge with the Provider instance.
+
+            paging: bool, optional
+                True (default) to follow paging and request all available data.
+                False to request only the first page.
+
+            rate_limit: int, optional
+                Number of seconds of delay to insert between paging requests.
+
+            version: str, Version, optional
+                The MDS version to target.
+
+            Additional keyword arguments are passed through as API request parameters.
+
+        Return:
+            list
+                The non-empty payloads (e.g. payloads with data records), one for each requested page.
+        """
+        version = Version(kwargs.get("version", self.version))
+        version.raise_if_unsupported()
+
+        if version < Version._041_():
+            raise ValueError(f"MDS Version {version} does not support the {GEOGRAPHIES} endpoint.")
+
+        Client._params_check(GEOGRAPHIES, version, **kwargs)
+
+        return self.get(GEOGRAPHIES, provider, **kwargs)
+
     @staticmethod
     def _request(provider, record_type, params, paging, rate_limit):
         """
@@ -445,6 +523,9 @@ class Client():
         data = page["data"] if "data" in page else {"__payload__": []}
         data_key = Schema(record_type).data_key
         payload = data[data_key] if data_key in data else []
+        # MDS v2.0 directly has "record_type" field without any "data" field
+        if not payload:
+          payload = page[data_key] if data_key in page else []          
         print(f"Got payload with {len(payload)} {record_type}")
         return len(payload) > 0
 
