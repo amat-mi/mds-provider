@@ -168,6 +168,7 @@ class BaseJWTCredentials(AuthorizationToken):
         """
         headers = {
           'alg': 'RS256',
+          #'alg': 'ES256',        #is it actually needed to use this one???
           'typ': 'JWT',
           'kid' : provider.private_key_id 
         }
@@ -181,7 +182,10 @@ class BaseJWTCredentials(AuthorizationToken):
             'sub': provider.client_email,
         }
         provider.token = jwt.encode(key=provider.private_key,          
-            payload=payload, algorithm='RS256', headers=headers
+            payload=payload, 
+            algorithm='RS256',    #is it actually needed to use this one???
+            #algorithm='ES256', 
+            headers=headers
         )
         
         AuthorizationToken.__init__(self, provider)
