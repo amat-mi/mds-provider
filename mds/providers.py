@@ -11,6 +11,8 @@ import requests
 
 import mds.github
 from .schemas import STATUS_CHANGES, TRIPS, EVENTS, VEHICLES
+# also support a few newer APIs
+from .schemas import STOPS
 # also support a few Agency APIs
 from .schemas import POLICIES, GEOGRAPHIES
 from .versions import Version
@@ -107,6 +109,8 @@ class Provider():
             TRIPS: "/".join(endpoint + [TRIPS]),
             EVENTS: "/".join(endpoint + [EVENTS]),
             VEHICLES: "/".join(endpoint + [VEHICLES]),
+            # also support a few newer APIs
+            STOPS: "/".join(endpoint + [STOPS]),
             # also support a few Agency APIs
             POLICIES: "/".join(endpoint + [POLICIES]),
             GEOGRAPHIES: "/".join(endpoint + [GEOGRAPHIES])

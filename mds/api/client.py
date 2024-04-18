@@ -9,6 +9,8 @@ from ..encoding import TimestampEncoder, TimestampDecoder
 from ..files import ConfigFile
 from ..providers import Provider
 from ..schemas import STATUS_CHANGES, TRIPS, EVENTS, VEHICLES, Schema
+# also support a few newer APIs
+from ..schemas import STOPS
 # also support a few Agency APIs
 from ..schemas import POLICIES, GEOGRAPHIES
 from ..versions import Version
@@ -373,6 +375,44 @@ class Client():
         Client._params_check(VEHICLES, version, **kwargs)
 
         return self.get(VEHICLES, provider, **kwargs)
+
+    def get_stops(self, provider=None, **kwargs):
+        """
+        Request stops, returning a list of non-empty payloads.
+
+        Parameters:
+            provider: str, UUID, Provider, optional
+                Provider instance or identifier to issue this request to.
+                By default issue the request to this client's Provider instance.
+
+            config: dict, ConfigFile, optional
+                Attributes to merge with the Provider instance.
+
+            paging: bool, optional
+                True (default) to follow paging and request all available data.
+                False to request only the first page.
+
+            rate_limit: int, optional
+                Number of seconds of delay to insert between paging requests.
+
+            version: str, Version, optional
+                The MDS version to target.
+
+            Additional keyword arguments are passed through as API request parameters.
+
+        Return:
+            list
+                The non-empty payloads (e.g. payloads with data records), one for each requested page.
+        """
+        version = Version(kwargs.get("version", self.version))
+        version.raise_if_unsupported()
+
+        if version < Version._041_():
+            raise ValueError(f"MDS Version {version} does not support the {STOPS} endpoint.")
+
+        Client._params_check(STOPS, version, **kwargs)
+
+        return self.get(STOPS, provider, **kwargs)
 
     def get_policies(self, provider=None, **kwargs):
         """
